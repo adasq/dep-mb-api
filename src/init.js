@@ -26,7 +26,6 @@ db = require('./app/db/connect'),
 bodyParser = require('body-parser');
 
 var MongoStore = require('connect-mongo')(express);
-  
 
 // var mailOptions = {
 //     from: 'Fred Foo ✔ <foo@blurdybloop.com>', // sender address
@@ -35,7 +34,6 @@ var MongoStore = require('connect-mongo')(express);
 //     text: 'Hello world ✔', // plaintext body
 //     html: '<b>Hello world ✔</b>' // html body
 // };
-
 
 // var promise =  MailManager.send(mailOptions);
 // promise.then(function(){

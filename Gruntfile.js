@@ -11,15 +11,26 @@ module.exports = function ( grunt ) {
   // grunt.loadNpmTasks('grunt-conventional-changelog');
   // grunt.loadNpmTasks('grunt-bump');
   // grunt.loadNpmTasks('grunt-coffeelint');
-  // grunt.loadNpmTasks('grunt-karma');
+     grunt.loadNpmTasks('grunt-karma');
   // grunt.loadNpmTasks('grunt-ngmin');
 
   var userConfig = require('./config.js');
 
   var taskConfig = {
-
-    pkg: grunt.file.readJSON("package.json"),
-
+    pkg: grunt.file.readJSON("package.json"),  
+    karma: {
+      options: {        
+      },
+      unit: {
+        configFile: 'karma-unit.js',
+        port: 9019,
+        background: true
+      },
+      continuous: { 
+       configFile: 'karma-unit.js',       
+        singleRun: true
+      }
+    },
     jshint: {
       js: [ 
         '<%= app_files.js %>'
@@ -46,7 +57,7 @@ module.exports = function ( grunt ) {
         files: [ 
           '<%= app_files.js %>'
         ],
-        tasks: [ 'jshint:js']
+        tasks: [ 'jshint:js', 'karma:unit:run']
       }   
     }
   };//taskConfig
@@ -54,7 +65,13 @@ module.exports = function ( grunt ) {
   grunt.initConfig( grunt.util._.extend( taskConfig, userConfig ) );
 
   grunt.renameTask( 'watch', 'track' );
- // grunt.registerTask( 'watch', [ 'build', 'karma:unit', 'delta' ] );
+  
 
+  grunt.registerTask( 'test', ['karma:continuous']);
+  grunt.registerTask( 'watch', [
+   // 'karma:unit',
+    'track' 
+    ]);
+ 
 
 };
