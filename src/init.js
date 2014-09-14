@@ -109,7 +109,9 @@ var app = express();
   secret: '1234567890QWERTY'
 }));
   app.use(express.urlencoded()); 
-  app.use('/', express.static(__dirname + '/webapp'));
+
+  //__dirname + '/webapp'
+  app.use('/', express.static("c:/GIT/mb-ui/build"));
 
    app.use(function(req, res, next){  
       if(req.session.user){
