@@ -37,7 +37,7 @@ exports.Session = function(db) {
 //------------------------------------------
 var Trooper = new Schema({
   name: {type: String, required: true},
-  pass: {type: String, required: true},
+  pass: {type: String, required: false},
 });
 
 mongoose.model('Trooper', Trooper);

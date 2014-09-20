@@ -100,7 +100,7 @@ i18n.configure({
 var app = express(); 
   app.use(express.cookieParser()); 
   app.use(i18n.init);
-   app.use(bodyParser());
+  app.use(express.json());
 
    app.use(express.session({
   store: new MongoStore({
@@ -110,7 +110,7 @@ var app = express();
 }));
   app.use(express.urlencoded()); 
 
-  //__dirname + '/webapp'
+  //__dirname + '/webapp' 
   app.use('/', express.static("c:/GIT/mb-ui/build"));
 
    app.use(function(req, res, next){  
@@ -202,10 +202,7 @@ var trooper = new Trooper(trooperConfig);
 //});
 
 
-
-
- return;
-
+ 
 // var generateArmyList = function(trooperConfig){
 //   var armyPromise = q.defer();
 //   var currentTrooper = new Trooper(trooperConfig); 

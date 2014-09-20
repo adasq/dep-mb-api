@@ -48,6 +48,7 @@ routes.push({
       };
     db.TrooperList(newListData).save(function(err, model){
        if(err){
+        console.log(err)
    res.send(errorResponse('creating failed!'));
   }else{
    res.send(successResponse({}));
@@ -151,10 +152,13 @@ routes.push({
                     //-----------------------------------------
                     var promise = trooper.upgrade(0);
                     promise.then(function(result){
+                      _.each(skillList.skills, function(skill){
+                            skill.style = skill.style.replace("url('/img/", "url('/assets/");
+                        });
                      if(result === 501){
                       console.log('upgrade availavle');
                          var promise = trooper.getTrooperUpgradeSkillList(0);
-                         promise.then(function(upgradeSkillList){ 
+                         promise.then(function(upgradeSkillList){
                          res.send(successResponse({fight: fightResponse, skills: skillList, upgrade: upgradeSkillList}));
                         });
                      }else{
@@ -261,7 +265,7 @@ routes.push({
       var post_data = req.body;
       var name = post_data.name;
       var pass = post_data.pass;
-
+console.log(req.body, req.query, req.params, req.param('name'));
 var promise = User.getUserByName(name);
 promise.then(function(user){
     if(!user){
