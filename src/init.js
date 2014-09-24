@@ -111,7 +111,7 @@ var app = express();
   app.use(express.urlencoded()); 
 
   //__dirname + '/webapp' 
-  app.use('/', express.static("c:/GIT/mb-ui/build"));
+  app.use('/', express.static("c:/GIT/mb-ui/bin"));
 
    app.use(function(req, res, next){  
       if(req.session.user){
@@ -163,29 +163,35 @@ app.listen(config.PORT);
 var trooperConfig = {
   domain: "com",
   opponent: "nopls",
-  name: "aaaa",
-//  pass: "nowehaslo"
+  name: "ziemniaki",
+ // pass: ""
 };
 
 var trooper = new Trooper(trooperConfig);
-//trooper.auth().then(function(resposne){
-//
-  // var promise = trooper.getTrooperSkillList(0);
-  // promise.then(function(skillList){ 
-  //   console.log(skillList);
-  // });
-
-// var promise = trooper.upgrade(1);
-// promise.then(function(result){
-//  console.log(result,  CookieMessages.upgrade[result]);
-
-// var promise = trooper.getTrooperUpgradeSkillList(1);
-// promise.then(function(skillList){ 
-//  console.log(skillList);
-// });
+trooper.auth().then(function(resposne){
 
 
-// });
+
+ var promise= trooper.makeBattles();
+   promise.then(function(resp){
+   console.log("makeBattles", resp);   
+ }, function(){
+  console.log("makeBattles :(");  
+ });
+
+
+ var promise= trooper.makeMissions();
+   promise.then(function(resp){
+   console.log("makeMissions ",resp);    
+ });
+
+var promise= trooper.makeRaids();
+   promise.then(function(resp){
+   console.log("makeRaids", resp);   
+});
+
+
+});
 
 
 // var startDate = +new Date();

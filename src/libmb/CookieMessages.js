@@ -5,7 +5,8 @@ module.exports =  {
 		"176": "win mission",
 		battle: {
 			"80": "You have won the battle",
-			"81": "You have lose the battle"
+			"81": "You have lose the battle",
+			"46": "Auth data wrong"
 		},
 		raid: {
 			"174": "You have passed Raid!",

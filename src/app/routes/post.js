@@ -177,13 +177,13 @@ routes.push({
         
 
            }else{
-            errorResponse('wrong auth data');
+            res.send(errorResponse(result.message));
            }
         });
 
 
       }else{
-        console.log('lipa2');
+        res.send(errorResponse('i dont know wtf wrong'));
       }   
      // res.send(req.session.lists[listData.name]);
  

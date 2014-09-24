@@ -15,7 +15,6 @@ var Trooper = function(config){
 };
 
 
-
 Trooper.prototype.auth= function(){
 var that = this;
 var defer= q.defer();
@@ -30,19 +29,19 @@ if(this.config.pass){
 }
 
 promise.then(function(response){
-
-var cookie = response.getCookies();
+var cookie = response.getCookies(); 
 var code = null; 
 if(response.isRedirect()){
   	code= CookieManager.getTextByCookie(cookie);
   	if(that.config.pass){
   		that.chk = CookieManager.getCHKByCookie(cookie); 
+
  		code= code || 201;
   	}else{
   		code= code || 501;
   	} 
 }else{
- 	that.chk = CookieManager.getCHKByCookie(cookie); 
+ 	that.chk = CookieManager.getCHKByCookie(cookie);  	
  	code= 201;
 }
  defer.resolve({code: code, message: CookieMessages.auth[code]});
@@ -127,11 +126,18 @@ Trooper.prototype.makeBattle = function(opponent){
 			friend: opponent || that.config.opponent,
 		};
 		var promise= this.req.post(this.urlManager.getBattleUrl(), data);
-		promise.then(function(response){		
-			var cookies= response.getCookies();			
+		promise.then(function(response){
+
+			var cookies= response.getCookies();		
+			
 			if(cookies){
-				var msg = CookieManager.getMessageByCookie(cookies);
-				defer.resolve(msg);
+				var msg = null;
+				try{
+					msg= CookieManager.getMessageByCookie(cookies);
+					defer.resolve(msg);
+				}catch(err){ 
+					defer.resolve(CookieManager.getTextByCookie(cookies));
+				};		
 			}else{
 				defer.resolve(-1);
 			}
@@ -148,8 +154,12 @@ Trooper.prototype.makeRaid = function(){
 			var cookies= response.getCookies();	
 			var headers = response.getHeaders();
 			if(cookies){
-				var msg = CookieManager.getMessageByCookie(cookies);
-				defer.resolve(msg);
+					try{
+					msg= CookieManager.getMessageByCookie(cookies);
+					defer.resolve(msg);
+				}catch(err){ 
+					defer.resolve(CookieManager.getTextByCookie(cookies));
+				}	
 			}else{
 				defer.resolve(-174);
 			}
@@ -195,8 +205,12 @@ Trooper.prototype.makeMission = function(){
 		promise.then(function(response){		
 			var cookies= response.getCookies();
 			if(cookies){
-				var msg = CookieManager.getMessageByCookie(cookies);
-				defer.resolve(msg);
+					try{
+					msg= CookieManager.getMessageByCookie(cookies);
+					defer.resolve(msg);
+				}catch(err){ 
+					defer.resolve(CookieManager.getTextByCookie(cookies));
+				}	
 			}else{
 				defer.resolve(-1);
 			}
@@ -209,9 +223,11 @@ Trooper.prototype.makeMission = function(){
 Trooper.prototype.makeRaids= function(){	 
 		var results = [], that= this, defer= q.defer(); 	
 		var makeRaid = function(){
-			that.makeRaid().then(function(result){
+			that.makeRaid().then(function(result){ 
 				results.push(result);
 				if(result === 142){
+					defer.resolve(results);
+				}else if(result === 46){
 					defer.resolve(results);
 				}else{
 					makeRaid();
@@ -281,7 +297,7 @@ Trooper.prototype.toString= function(){
 };
 
 
-var preventAuthChecking = ['auth', 'toString'],
+var preventAuthChecking = ['auth','auth2', 'toString'],
 checkAuth = function(){	 
 	return !!this.chk;
 };
