@@ -65,18 +65,16 @@ fs.writeFile("./examle.txt", b, function(err) {
 };
 
 //==========================================================
-Trooper.prototype.getArmyList = function(){
-//console.log("Wait for your list...")
+Trooper.prototype.getArmyList = function(){ 
 	var armyMembersList=[], promiseList= [], list, promise, that=this, parser= new PageParser(), defer= q.defer();
 
 promise = this.req.get(this.urlManager.getTrooperArmyPageList());
-promise.then(function(body){	
-if(body.length === 3){
-	defer.reject();
-}
-
+promise.then(function(body){
 list = parser.getTrooperArmyList(body);
-_.each(list, function(trooperId){
+if(!list){
+	defer.reject(-66);
+}else{
+	_.each(list, function(trooperId){
 promise = that.req.get(that.urlManager.getTrooperArmyMemberDetalis(trooperId));
 promiseList.push(promise);
 });
@@ -88,6 +86,7 @@ q.all(promiseList).then(function(pages){
 	});
 	defer.resolve(armyMembersList);
 });
+}
 }, defer.reject);
 return defer.promise;
 };

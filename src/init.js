@@ -76,16 +76,6 @@ var MongoStore = require('connect-mongo')(express);
 // });
 
 
-// promise.then(function(adam){
-//     if(adam){      
-
-//     }else{
-//       console.log("no exists")
-//     }
-// }, function(){
-//   console.log("err db");
-// });
-
 
 
 i18n.configure({
@@ -160,11 +150,11 @@ app.listen(config.PORT);
 // });
 
 //===========================================
-var trooperConfig = {
+var play = function(){
+  var trooperConfig = {
   domain: "com",
   opponent: "nopls",
   name: "ziemniaki",
- // pass: ""
 };
 
 var trooper = new Trooper(trooperConfig);
@@ -193,6 +183,13 @@ var promise= trooper.makeRaids();
 
 });
 
+}
+
+//play();
+//===========================================
+
+
+
 
 // var startDate = +new Date();
 // setInterval(function(){
@@ -207,64 +204,97 @@ var promise= trooper.makeRaids();
 // }, 5*1000);
 //});
 
-
  
-// var generateArmyList = function(trooperConfig){
-//   var armyPromise = q.defer();
-//   var currentTrooper = new Trooper(trooperConfig); 
-//   var promise = currentTrooper.auth();
-//   promise.then(function(res){  
-//         var promise = currentTrooper.getArmyList();
-//         promise.then(armyPromise.resolve, armyPromise.reject);  
-//   }, function(){
-//     armyPromise.reject('33333333333333333333');
-//   }); 
-//   return armyPromise.promise;
-// };
-
-// var test = {name: trooperConfig.name, children: []};
-//  var list = 0;
-//  var troopersFamily = {};
-//  var finish = function(){
-//   console.log(JSON.stringify(test));
-//  };
+var generateArmyList = function(trooperConfig){
+  var armyPromise = q.defer();
+  var currentTrooper = new Trooper(trooperConfig); 
+  var promise = currentTrooper.auth();
+  promise.then(function(res){
+         var promise ;
+try{
+   promise = currentTrooper.getArmyList();
+ }catch(e){
+  console.log(e)
+ }       
+        promise.then(armyPromise.resolve, armyPromise.reject);  
+  }, function(){
+    armyPromise.reject('33333333333333333333');
+  }); 
+  return armyPromise.promise;
+};
 
 
-// var generate = function(trooperConfig, test){
-//   //++list;
-//   var p = generateArmyList(trooperConfig);  
-//   p.then(function(armyList){
-//      // --list;
-//  // if(list === 1){
-//  //  finish();
-//  // }
-//         list+=armyList.length;
-//         _.each(armyList, function(army){
-//           var armyObject = {name: army.name, children: [] };      
-//           if(troopersFamily[trooperConfig.name]){
-//             troopersFamily[trooperConfig.name].push(army.name);
-//           }else{
-//             troopersFamily[trooperConfig.name]= [army.name];
-//           }
-//           test.children.push(armyObject);
-//           // console.log(army.name +" child of "+trooperConfig.name);          
-//           generate({name: army.name, domain: "com",  opponent: "nopls"}, armyObject);
-//         });        
+
+var generate = function(trooperConfig, test){
+  //++list;
+  var p = generateArmyList(trooperConfig);  
+ console.log(3)
+  p.then(function(armyList){
+     --list;
+ if(list === 1){
+  finish();
+ }
+        list+=armyList.length;
+        _.each(armyList, function(army){
+          var armyObject = {name: army.name, children: [] };      
+          if(troopersFamily[trooperConfig.name]){
+            troopersFamily[trooperConfig.name].push(army.name);
+          }else{
+            troopersFamily[trooperConfig.name]= [army.name];
+          }
+          test.children.push(armyObject);      
+          generate({name: army.name, domain: "com",  opponent: "nopls"}, armyObject);
+        });        
         
-//   }, function(){
-//      //--list; 
-//  //     if(list === 1){
-//  //  finish();
-//  // }
-//   });  
+  }, function(){
+     --list; 
+     if(list === 1){
+  finish();
+ }
+  });  
 
-// };
-
-
-// generate(trooperConfig, test);
+ };
 
 
 
+  var trooperConfig = {
+  domain: "com",
+  opponent: "nopls",
+  name: "ziemniaki"
+};
+
+var test = {name: trooperConfig.name, children: []};
+ var list = 0;
+ var troopersFamily = {};
+ var finish = function(){
+  console.log(JSON.stringify(test));
+  var fs = require('fs');
+fs.writeFile("temp.txt", JSON.stringify(test), function(err) {
+    if(err) {
+        console.log(err);
+    } else {
+        console.log("The file was saved!");
+    }
+}); 
+
+ };
+
+
+
+ // generateArmyList(trooperConfig).then(function(r){
+ //  console.log(r);
+ // }, function(r){
+ //  console.log(r);
+ // });
+
+
+try{
+   generate(trooperConfig, test);
+ }catch(e){
+  console.log(e)
+ }
+
+//setInterval(finish, 10000);
 
 
 

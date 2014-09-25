@@ -36,8 +36,16 @@ return {
 };
 
 this.getTrooperArmyList = function(res){
-var items2=[], items = res.match(/i\d+R/g),firstTrooperException = res.match(/%01i\d+y13/g)[0];
+var items2=[], items = res.match(/i\d+R/g);
+var firstTrooperException = res.match(/%01i\d+y13/g);
+if(!firstTrooperException){
+	return null;
+}else{
+	firstTrooperException = firstTrooperException[0];
+}
+
 firstTrooperException = firstTrooperException.substr(4).slice(0, -3);
+
 items2.push(firstTrooperException);
 _.each(items, function(item, i ){
 		if(+i%2 !== 0){
