@@ -335,5 +335,37 @@ promise.then(function(armyList){
 }
 });
 //========================================================================================
+routes.push({
+  url: "/generateTrooperFamily",
+  callback: function(req, res){   
+      var post_data = req.body;
+      var name = post_data.name;
+      var pass = post_data.pass;
+
+var trooperConfig = {
+  domain: "com",
+  opponent: "nopls",
+  name: name,
+  pass: pass || undefined
+};
+
+
+var trooper = new Trooper(trooperConfig);
+var promise = trooper.generateTrooperFamily();
+promise.then(function(trooperFamily){
+  res.send({error: false, response: {trooperFamily: trooperFamily}});
+})
+
+
+
+
+}
+});
+//========================================================================================
+
+
+
+
+
 
 module.exports = routes;

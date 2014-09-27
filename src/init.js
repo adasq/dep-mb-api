@@ -101,7 +101,7 @@ var app = express();
   app.use(express.urlencoded()); 
 
   //__dirname + '/webapp' 
-  app.use('/', express.static("c:/GIT/mb-ui/bin"));
+  app.use('/', express.static("c:/GIT/mb-ui/build"));
 
    app.use(function(req, res, next){  
       if(req.session.user){
@@ -154,13 +154,11 @@ var play = function(){
   var trooperConfig = {
   domain: "com",
   opponent: "nopls",
-  name: "ziemniaki",
+  name: "ziemniaki3",
 };
 
 var trooper = new Trooper(trooperConfig);
 trooper.auth().then(function(resposne){
-
-
 
  var promise= trooper.makeBattles();
    promise.then(function(resp){
@@ -189,118 +187,34 @@ var promise= trooper.makeRaids();
 //===========================================
 
 
-
-
-// var startDate = +new Date();
-// setInterval(function(){
-//   var promise = trooper.getTrooperSkillList(0);
-//   promise.then(function(skillList){ 
-//     console.log(_.pluck(skillList.skills, 'title'));
-//     var secs = ((+new Date()) - startDate)/1000;
-    
-//     console.log(secs);
-//   });
  
-// }, 5*1000);
-//});
 
- 
-var generateArmyList = function(trooperConfig){
-  var armyPromise = q.defer();
-  var currentTrooper = new Trooper(trooperConfig); 
-  var promise = currentTrooper.auth();
-  promise.then(function(res){
-         var promise ;
-try{
-   promise = currentTrooper.getArmyList();
- }catch(e){
-  console.log(e)
- }       
-        promise.then(armyPromise.resolve, armyPromise.reject);  
-  }, function(){
-    armyPromise.reject('33333333333333333333');
-  }); 
-  return armyPromise.promise;
-};
-
-
-
-var generate = function(trooperConfig, test){
-  //++list;
-  var p = generateArmyList(trooperConfig);  
- console.log(3)
-  p.then(function(armyList){
-     --list;
- if(list === 1){
-  finish();
- }
-        list+=armyList.length;
-        _.each(armyList, function(army){
-          var armyObject = {name: army.name, children: [] };      
-          if(troopersFamily[trooperConfig.name]){
-            troopersFamily[trooperConfig.name].push(army.name);
-          }else{
-            troopersFamily[trooperConfig.name]= [army.name];
-          }
-          test.children.push(armyObject);      
-          generate({name: army.name, domain: "com",  opponent: "nopls"}, armyObject);
-        });        
-        
-  }, function(){
-     --list; 
-     if(list === 1){
-  finish();
- }
-  });  
-
- };
-
-
-
-  var trooperConfig = {
+var trooperConfig = {
   domain: "com",
   opponent: "nopls",
-  name: "ziemniaki"
+  name: "ziemniaki",
+  pass: ""
 };
+ 
 
-var test = {name: trooperConfig.name, children: []};
- var list = 0;
- var troopersFamily = {};
- var finish = function(){
-  console.log(JSON.stringify(test));
-  var fs = require('fs');
-fs.writeFile("temp.txt", JSON.stringify(test), function(err) {
-    if(err) {
-        console.log(err);
-    } else {
-        console.log("The file was saved!");
-    }
-}); 
-
- };
-
-
-
- // generateArmyList(trooperConfig).then(function(r){
- //  console.log(r);
- // }, function(r){
- //  console.log(r);
- // });
-
-
-try{
-   generate(trooperConfig, test);
- }catch(e){
-  console.log(e)
- }
-
-//setInterval(finish, 10000);
+// var trooper = new Trooper(trooperConfig);
+// var promise = trooper.generateTrooperFamily();
+// promise.then(function(trooperFamily){
+//   console.log(JSON.stringify(trooperFamily))
+// })
 
 
 
 
 
 
+
+// var army = {name: trooperConfig.name, children: []};
+// generateArmyFamily(trooperConfig, army).then(function(r){
+//   console.log("!!!!!!!!!!!!", army);
+// }, function(){
+//   console.log('eh')
+// })
 
 
 

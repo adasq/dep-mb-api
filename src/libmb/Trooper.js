@@ -24,18 +24,17 @@ if(this.config.pass){
 		pass: this.config.pass
 	};
 	promise= this.req.post(this.urlManager.getLoginUrl(), data);
-}else{	
+}else{	 
 	promise= this.req.send(this.urlManager.getBaseUrl());
 }
 
 promise.then(function(response){
-var cookie = response.getCookies(); 
+var cookie = response.getCookies();
 var code = null; 
 if(response.isRedirect()){
   	code= CookieManager.getTextByCookie(cookie);
   	if(that.config.pass){
   		that.chk = CookieManager.getCHKByCookie(cookie); 
-
  		code= code || 201;
   	}else{
   		code= code || 501;
@@ -45,7 +44,7 @@ if(response.isRedirect()){
  	code= 201;
 }
  defer.resolve({code: code, message: CookieMessages.auth[code]});
-});
+}, defer.reject);
 return defer.promise;
 };
 
@@ -246,6 +245,64 @@ Trooper.prototype.makeBattles= function(){
 		return promise;
 };
 
+
+Trooper.prototype.generateTrooperFamily = function(){
+	//=================================================
+var generateArmyList = function(trooperConfig2){
+  var armyPromise = q.defer(),
+  currentTrooper = new Trooper(trooperConfig2),
+  authPromise = currentTrooper.auth();
+  authPromise.then(function(res){ 
+  		if(res.code === 201){
+         var promise = currentTrooper.getArmyList();   
+          promise.then(armyPromise.resolve, function(){
+          armyPromise.resolve([]);
+        });    
+  		}else{
+  			armyPromise.resolve([])
+  		}
+       
+  }, function(){
+    armyPromise.resolve([])
+  }); 
+  return armyPromise.promise;
+};
+var generateArmyFamily = function(trooperConfig, parent){
+  var armyPromise = q.defer();
+generateArmyList(trooperConfig).then(function(list){
+  if(list.length === 0){
+      armyPromise.resolve([]);
+  }else{
+    var promises= _.map(list, function(army){
+      var newTrooperConfig = _.clone(trooperConfig); 
+      newTrooperConfig.pass= undefined;
+      newTrooperConfig.name= army.name;
+      var armyObject = {name: army.name, children: [] };   
+      parent.children.push(armyObject); 
+      return generateArmyFamily(newTrooperConfig, armyObject);
+  });  
+    q.all(promises).then(function(){
+      armyPromise.resolve(list);
+    });
+  }
+}, function(){
+  console.log('eh2')
+});
+  return armyPromise.promise;
+};
+//=================================================
+
+  var armyResultPromise = q.defer();
+var army = {name: this.config.name, children: []};
+generateArmyFamily(this.config, army).then(function(){
+	armyResultPromise.resolve(army)
+}, armyResultPromise.reject);
+return armyResultPromise.promise;
+}
+
+
+
+
 Trooper.prototype.selectSkill = function(trooperId, skill){
 	var trooper = (trooperId || 0), that= this, defer= q.defer(); 
 	var promise = this.req.send(this.urlManager.getSelectUpgradeSkillUrl(this.chk, trooper, skill));
@@ -296,7 +353,7 @@ Trooper.prototype.toString= function(){
 };
 
 
-var preventAuthChecking = ['auth','auth2', 'toString'],
+var preventAuthChecking = ['auth','auth2', 'toString', 'generateTrooperFamily'],
 checkAuth = function(){	 
 	return !!this.chk;
 };

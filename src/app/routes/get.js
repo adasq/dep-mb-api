@@ -13,14 +13,16 @@ routes.push({
 });
 
 routes.push({
-	url: "/xd2",
-	callback: function(req, res){
-		db.Message
-    .findOne({author: "XXX"}) 
-    .exec(function(err, msg){ 
-          res.send({msg:msg});
-    }); 
-	}
+	url: "/topsecret",
+	callback: (function(){
+	var startTime = new Date();
+	return function(req, res){	
+		var totalOnlineTime = +(new Date()) - (+startTime);
+		totalOnlineTime = (totalOnlineTime/1000).toFixed(0);
+		res.send({startTime: startTime, totalSecs:totalOnlineTime});
+	};
+
+	})()
 });
 
 module.exports = routes;
