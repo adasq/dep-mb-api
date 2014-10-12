@@ -13,10 +13,7 @@ var User = new Schema({
    regDate	: {type: Date, default: new Date()},
    sessions: [{ type: Schema.Types.ObjectId, ref: 'Session' }]
 });
-
 User.plugin(uniqueValidator);
-
-
 
 mongoose.model('User', User);
 exports.User = function(db) {
@@ -38,8 +35,11 @@ exports.Session = function(db) {
 var Trooper = new Schema({
   name: {type: String, required: true},
   pass: {type: String, required: false},
+  session: {
+     cookie: {type: String, required: true},
+     chk: {type: String, required: true},
+  }
 });
-
 mongoose.model('Trooper', Trooper);
 exports.Trooper = function(db) {
   return db.model('Trooper');
@@ -54,6 +54,26 @@ var TrooperList = new Schema({
 mongoose.model('TrooperList', TrooperList);
 exports.TrooperList = function(db) {
   return db.model('TrooperList');
+};
+//------------------------------------------
+var TrooperReport = new Schema({ 
+  report: {type: String, required: true},
+});
+
+mongoose.model('TrooperReport', TrooperReport);
+exports.TrooperReport = function(db) {
+  return db.model('TrooperReport');
+};
+//------------------------------------------
+var TrooperListReport = new Schema({ 
+  _creator: { type: Schema.Types.ObjectId, ref: 'TrooperList' }, 
+  initDate  : {type: Date, default: new Date()},
+  trooperReports : [TrooperReport]
+});
+
+mongoose.model('TrooperListReport', TrooperListReport);
+exports.TrooperListReport = function(db) {
+  return db.model('TrooperListReport');
 };
 //------------------------------------------
 

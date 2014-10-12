@@ -1,19 +1,27 @@
 var URLManager = require('./URLManager');  
 var PageParser = require('./PageParser');  
 var Request = require('./Request'); 
+var request = require('request');
 var CookieMessages= require('./CookieMessages'); 
 var CookieManager = require('./CookieManager'); 
 var _ = require('underscore');
 var q = require('q');
 
 
-var Trooper = function(config){
+var Trooper = function(config, ao){
 	this.urlManager = new URLManager(config);
 	var promise, that= this;
-	this.req = new Request();
+	this.req = new Request();	
 	this.config = _.extend({}, config);	
 };
-
+Trooper.prototype.authSync = function(ao){
+		this.chk = ao.chk;  
+		var newCookie = request.cookie(ao.cookie);
+		newCookie.domain = 'minitroopers.com'	
+		newCookie.path = '/';
+		newCookie.hostOnly= false; 
+		this.req.jar.setCookie(newCookie, 'http://minitroopers.com');
+};
 
 Trooper.prototype.auth= function(){
 var that = this;
@@ -27,8 +35,8 @@ if(this.config.pass){
 }else{	 
 	promise= this.req.send(this.urlManager.getBaseUrl());
 }
+promise.then(function(response){ 
 
-promise.then(function(response){
 var cookie = response.getCookies();
 var code = null; 
 if(response.isRedirect()){
@@ -43,7 +51,11 @@ if(response.isRedirect()){
  	that.chk = CookieManager.getCHKByCookie(cookie);  	
  	code= 201;
 }
- defer.resolve({code: code, message: CookieMessages.auth[code]});
+var jar = that.req.jar;
+var cookieString= jar.getCookieString('http://minitroopers.com');
+
+ defer.resolve({ao: {cookie: cookieString, 
+ 	chk: that.chk}, code: code, message: CookieMessages.auth[code]});
 }, defer.reject);
 return defer.promise;
 };
@@ -79,8 +91,8 @@ promiseList.push(promise);
 });
 q.all(promiseList).then(function(pages){
 	_.each(pages, function(trooperArmyMemberPage){
-		 var detalis = parser.getTrooperDetalis(trooperArmyMemberPage);	
-				detalis.name = Trooper.normalizeName(detalis.name);
+		 var detalis = parser.getTrooperDetalis(trooperArmyMemberPage);			 
+			//	detalis.name = Trooper.normalizeName(detalis.name);
 		 armyMembersList.push(detalis);		 
 	});
 	defer.resolve(armyMembersList);
@@ -353,7 +365,7 @@ Trooper.prototype.toString= function(){
 };
 
 
-var preventAuthChecking = ['auth','auth2', 'toString', 'generateTrooperFamily'],
+var preventAuthChecking = ['auth','authSync', 'toString', 'generateTrooperFamily'],
 checkAuth = function(){	 
 	return !!this.chk;
 };

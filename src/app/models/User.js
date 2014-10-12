@@ -13,7 +13,18 @@ var User = function(data){
 		this.data.pass = Utils.getHashByPassword(this.data.pass);	
 	}
 };
- 
+User.getUsers = function(){
+	var deferred = q.defer();
+	db.User.find().exec(function(err, users){
+		if(err){
+			deferred.reject();
+		}else{
+			deferred.resolve(users);
+		}
+
+	});	
+	return deferred.promise;
+}
 
 User.getUserByField = function(field, value){
 	var deferred = q.defer();

@@ -41,6 +41,26 @@ routes.push({
   url: "/createList",
   callback: function(req, res){
       var post_data = req.body;
+var trooperConfig = {
+  domain: "com",
+  opponent: "nopls",
+  name: "",
+};
+      var promises = _.map(post_data.troopers, function(trooper){        
+        trooper.session = {
+          chk: "chk",
+          cookie: "cookie"
+        };
+        var tc = _.clone(trooperConfig);
+        tc.name = trooper.name;
+        var t = new Trooper(tc);
+        return t.auth();
+      });
+
+      q.all(promises).then(function(resp){
+        console.log("!"+JSON.stringify(resp))
+      });
+
       var newListData = {
         _creator: req.session.user.data._id,
         name: post_data.name,
@@ -52,8 +72,7 @@ routes.push({
    res.send(errorResponse('creating failed!'));
   }else{
    res.send(successResponse({}));
-  }
-      
+  }      
     });
     }
 });
@@ -70,17 +89,48 @@ routes.push({
         troopers: post_data.troopers
       };
 
-db.TrooperList.update({_id: listData._id, _creator: req.session.user.data._id}, {
-          name: post_data.name,
-          troopers: post_data.troopers
-}, function(err, numberAffected, rawResponse) {  
-  if(err){
-   res.send(errorResponse('updating failed!'));
-  }else{ 
-   delete req.session.lists[listData.name];
-   res.send(successResponse({}));
-  }
-});
+
+var trooperConfig = {
+  domain: "com",
+  opponent: "nopls",
+  name: "",
+};
+      var promises = _.map(post_data.troopers, function(trooper){        
+        trooper.session = {
+          chk: "chk",
+          cookie: "cookie"
+        };
+        var tc = _.clone(trooperConfig);
+        tc.name = trooper.name;
+        var t = new Trooper(tc);
+        return t.auth();
+      });
+      q.all(promises).then(function(authResponses){
+        
+        _.each(authResponses, function(ar, i){ 
+          console.log(ar.ao);
+          listData.troopers[i].session= ar.ao;
+        });
+
+        db.TrooperList.update({_id: listData._id, _creator: req.session.user.data._id}, {
+                  name: post_data.name,
+                  troopers: post_data.troopers
+        }, function(err, numberAffected, rawResponse) {  
+          if(err){
+           res.send(errorResponse('updating failed!'));
+          }else{ 
+           delete req.session.lists[listData.name];
+           res.send(successResponse({}));
+          }
+        });
+
+
+      });
+
+
+
+
+
 
 
     }
@@ -165,8 +215,6 @@ routes.push({
                         console.log('upgrade NOT availavle');
                       res.send(successResponse({fight: fightResponse, skills: skillList}));
                      }
-                     
-                    
                     });
                   //-----------------------------------------------------
                   });

@@ -27,6 +27,10 @@ bodyParser = require('body-parser');
 
 var MongoStore = require('connect-mongo')(express);
 
+
+
+
+
 // var mailOptions = {
 //     from: 'Fred Foo ✔ <foo@blurdybloop.com>', // sender address
 //     to: 'asnaebaem@gmail.com', // list of receivers
@@ -124,7 +128,8 @@ _.each(routesPOST, function(route){
 
 app.listen(config.PORT);
 
- 
+
+ //SELECT * FROM User WHERE (h = 358626989) FOR UPDATE Deadlock found when trying to get lock; try restarting transaction
 
 
 // app.get('/test', function(req, res){ 
@@ -149,52 +154,145 @@ app.listen(config.PORT);
 // 	});  
 // });
 
+
+
+
 //===========================================
-var play = function(){
-  var trooperConfig = {
-  domain: "com",
-  opponent: "nopls",
-  name: "ziemniaki3",
-};
+
+
+
+var getReportByTrooperConfig = function(trooperConfig){
+  var deferred = q.defer();
+  var resultReport = {
+    time: {
+      start: +new Date(),
+      end: null
+    },
+    fights: {
+      battle: [],
+      mission: [],
+      raid: []
+    },
+    skills: [],
+    money: [],
+    needToUpgrade: [],
+    upgrade: {
+      isAvailable: false,
+      skills: []
+    }
+  };
 
 var trooper = new Trooper(trooperConfig);
-trooper.auth().then(function(resposne){
-
- var promise= trooper.makeBattles();
-   promise.then(function(resp){
-   console.log("makeBattles", resp);   
- }, function(){
-  console.log("makeBattles :(");  
+trooper.auth().then(function(authResponse){
+  if(authResponse.code !== 201){
+    deferred.reject();
+  }
+   var fightPromises = [trooper.makeBattles(), trooper.makeMissions(), trooper.makeRaids()];
+   var fightPromise = q.all(fightPromises);
+   fightPromise.then(function(fightResponse){ 
+                  resultReport.fights.battle = fightResponse[0];
+                  resultReport.fights.mission = fightResponse[1];
+                  resultReport.fights.raid = fightResponse[2];
+                  trooper.getTrooperSkillList(0).then(function(trooperInfo){          
+                    resultReport.skills = trooperInfo.skills;
+                    resultReport.money = trooperInfo.money;
+                    resultReport.needToUpgrade = trooperInfo.needToUpgrade;
+                    var upgradePromise = trooper.upgrade(0);
+                    upgradePromise.then(function(result){                    
+                       if(result === 501){                        
+                          resultReport.upgrade.isAvailable = true;
+                           var promise = trooper.getTrooperUpgradeSkillList(0);
+                           promise.then(function(upgradeSkillList){                      
+                           resultReport.upgrade.skills = upgradeSkillList;
+                           resultReport.time.end = +new Date(); 
+                           deferred.resolve(resultReport);
+                          });
+                       }else{
+                          resultReport.time.end = +new Date();
+                          deferred.resolve(resultReport);                 
+                       }
+                    });
+                  });
+                });
  });
+return deferred.promise;
+};
 
 
- var promise= trooper.makeMissions();
-   promise.then(function(resp){
-   console.log("makeMissions ",resp);    
- });
+var handleDaily = function(){
+  User.getUsers().then(function(users){
+      var listData = {          
+        _creator: users[0]._id
+      };
+    db.TrooperList.find(listData, function(err, lists){
+      if(!err && lists){
+        var list = _.find(lists, function(list){
+          return (list.name === "newTable");
+        });
+     
 
-var promise= trooper.makeRaids();
-   promise.then(function(resp){
-   console.log("makeRaids", resp);   
+        var promises = _.map(list.troopers, function(trooperInfo){
+                var trooperConfig = {
+                  domain: "com",
+                  opponent: "nopls",
+                  name: trooperInfo.name
+                };
+                return getReportByTrooperConfig(trooperConfig);
+             });
+       q.all(promises).then(function(results){         
+            var trooperReportsArray = _.map(results, function(result){
+                return {report: JSON.stringify(result)}; 
+            });
+              console.log(trooperReportsArray);
+             var user = new db.TrooperListReport({_creator: list._id, trooperReports: trooperReportsArray});
+                user.save(function(err, model){
+                  console.log(err, model)
+                });
+
+        },function(){
+        });
+                // promise.then(function(report){
+                //   var reportStr = JSON.stringify(report);  
+                // var user = new db.TrooperReport({report: reportStr});
+                // user.save(function(err, model){
+                // });
+                // });
+
+
+
+
+   
+      }else{
+      }      
+    });
+
 });
+};
+  
+
+  db.TrooperListReport.find().exec(function(err, resp){
+    var report = resp[0].trooperReports[0];
+    var obj = JSON.parse(report.report);
+    console.log(obj)
+  })
 
 
-});
+//handleDaily();
 
-}
 
-//play();
+//   var ao= { cookie: 
+//   'ssid=f6b93a871ac91f2c4a60ae5e7880a850oy3:keyy6:dUBeR0y9:lastCheckd1413130881000y13:notificationslhg',
+//   chk: 'qVqjXu' }
+// console.log(ao)
+ 
+
+
+
 //===========================================
 
 
  
 
-var trooperConfig = {
-  domain: "com",
-  opponent: "nopls",
-  name: "ziemniaki",
-  pass: ""
-};
  
 
 // var trooper = new Trooper(trooperConfig);
