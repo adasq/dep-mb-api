@@ -123,16 +123,7 @@ var trooperConfig = {
            res.send(successResponse({}));
           }
         });
-
-
       });
-
-
-
-
-
-
-
     }
 });
 //========================================================================================
@@ -144,22 +135,33 @@ routes.push({
         name: post_data.name,
         _creator: req.session.user.data._id
       };
-
-      req.session.lists = req.session.lists || {};          
+      req.session.lists = req.session.lists || {};         
   
       if(req.session.lists[listData.name]){
-        res.send(successResponse(req.session.lists[listData.name]));
+        var _id = req.session.lists[listData.name]._id;
+               db.TrooperListReport.findOne({_creator: _id})
+               .sort('initDate')
+        .exec(function(err, listReport){ 
+       
+        var report = listReport.trooperReports;     
+          var list = req.session.lists[listData.name];
+           list.troopers= _.map(req.session.lists[listData.name].troopers, function(t, i){         
+             t.report = report[i].report; 
+             return t;
+           }) ;         
+          res.send(successResponse(list));
+        });
+        
       }else{
         db.TrooperList.findOne(listData, function(err, model){
-      if(!err && model){        
-        req.session.lists[listData.name]= model; 
-        res.send(successResponse(model));       
+        if(!err && model){        
+          req.session.lists[listData.name]= model; 
+          res.send(successResponse(model));       
 
-      }else{
-         res.send(errorResponse("problem? :D"));
-      }      
-      });
-
+        }else{
+           res.send(errorResponse("problem? :D"));
+        }      
+        });
       } 
 
     }

@@ -251,17 +251,6 @@ var handleDaily = function(){
 
         },function(){
         });
-                // promise.then(function(report){
-                //   var reportStr = JSON.stringify(report);  
-                // var user = new db.TrooperReport({report: reportStr});
-                // user.save(function(err, model){
-                // });
-                // });
-
-
-
-
-   
       }else{
       }      
     });
@@ -269,7 +258,7 @@ var handleDaily = function(){
 });
 };
   
-
+//handleDaily();
   db.TrooperListReport.find().exec(function(err, resp){
     var report = resp[0].trooperReports[0];
     var obj = JSON.parse(report.report);
