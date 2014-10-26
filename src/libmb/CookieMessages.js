@@ -29,6 +29,7 @@ module.exports =  {
 			"503": "Check if trooper really exists"
 		},
 		auth: {
+			"-111": "Page could not be loaded",
 			"46": "You need to authorize",
 			"21": "Wrong Password",
 			"501": "Trooper does not exists",

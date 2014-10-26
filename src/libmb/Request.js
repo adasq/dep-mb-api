@@ -11,10 +11,11 @@ module.exports = function(){
 	this.send = function(url){
 			var defer= q.defer(); 			
 			request({uri: url, jar: j, followRedirect: false}, function(e,r,b){
-				if(e){
+				
+				if(e){										
 					defer.reject(-111);
 				}else{
-				var response = new Response(r);
+				var response = new Response(r, b);
 				defer.resolve(response);
 				}
 				
@@ -23,7 +24,7 @@ module.exports = function(){
 	};
 	this.get = function(url){
 			var defer= q.defer(); 	
-			request({uri: url, jar: j, followRedirect: true}, function(e,r,b){				
+			request({uri: url, jar: j, followRedirect: true}, function(e,r,b){			
 				defer.resolve(b);
 			});
 			return defer.promise;
@@ -38,6 +39,7 @@ module.exports = function(){
 			// console.log(x.value)
 			request.post({form: data, uri: url, jar: j, followRedirect: false}, function(e,r,b){
 if(e){
+
 					defer.reject(-111);
 				}else{
 				var response = new Response(r);

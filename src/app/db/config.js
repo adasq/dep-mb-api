@@ -1,4 +1,4 @@
 
 module.exports = {
-connectionURI: "mongodb://localhost/forum"
+connectionURI: "mongodb://localhost/mini-botters"
 };

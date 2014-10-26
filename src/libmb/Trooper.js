@@ -9,6 +9,7 @@ var q = require('q');
 
 
 var Trooper = function(config, ao){
+
 	this.urlManager = new URLManager(config);
 	var promise, that= this;
 	this.req = new Request();	
@@ -35,8 +36,7 @@ if(this.config.pass){
 }else{	 
 	promise= this.req.send(this.urlManager.getBaseUrl());
 }
-promise.then(function(response){ 
-
+promise.then(function(response){
 var cookie = response.getCookies();
 var code = null; 
 if(response.isRedirect()){
@@ -60,7 +60,54 @@ var cookieString= jar.getCookieString('http://minitroopers.com');
 return defer.promise;
 };
 
+Trooper.prototype.auth2= function(){
+var that = this;
+var defer= q.defer(); 
+if(this.config.pass){
+	var data = {
+		login: this.config.name,
+		pass: this.config.pass
+	};
+	promise= this.req.post(this.urlManager.getLoginUrl(), data);
+}else{	 
+	promise= this.req.send(this.urlManager.getBaseUrl());
+}
+promise.then(function(response){
+var cookie = response.getCookies();
+var code = null; 
+if(response.isRedirect()){
+  	code= CookieManager.getTextByCookie(cookie);
+  	if(that.config.pass){
+  		that.chk = CookieManager.getCHKByCookie(cookie); 
+ 		code= code || 201;
+  	}else{
 
+  		code= code || 501;
+  	} 
+}else{	
+ 	that.chk = CookieManager.getCHKByCookie(cookie);  	
+ 	code= 201; 	
+}
+var jar = that.req.jar;
+var cookieString= jar.getCookieString('http://minitroopers.com');
+if(code === 201){	
+	if(response.body.indexOf('name="pass"') > -1){
+			code = 46;
+		   defer.reject({code: code, message: CookieMessages.auth[code]});
+	}else{
+		 defer.resolve({code: code, message: CookieMessages.auth[code]});
+	}
+}else{
+ defer.reject({code: code, message: CookieMessages.auth[code]});
+}
+// console.log(response.isRedirect())
+// console.log(response.getHeaders())
+// console.log(response.getCookies().split(':'), response.getCookies().split(':').length)
+}, function(requestErrorCode){
+	defer.reject({code: requestErrorCode, message: CookieMessages.auth[requestErrorCode]});
+});
+return defer.promise;
+};
 
 var fs = require('fs');
 
@@ -365,7 +412,7 @@ Trooper.prototype.toString= function(){
 };
 
 
-var preventAuthChecking = ['auth','authSync', 'toString', 'generateTrooperFamily'],
+var preventAuthChecking = ['auth','auth2','authSync', 'toString', 'generateTrooperFamily'],
 checkAuth = function(){	 
 	return !!this.chk;
 };

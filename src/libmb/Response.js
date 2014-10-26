@@ -1,4 +1,5 @@
-module.exports = function(obj){
+module.exports = function(obj, b){
+	this.body = b || "";
 	this.isRedirect = function(){
 		return obj.statusCode === 302;
 	};

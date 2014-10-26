@@ -22,65 +22,15 @@ Utils= require('./app/models/Utils'),
 User= require('./app/models/User'),
 MailManager= require('./app/models/MailManager'),
 i18n = require("i18n"),
+skills = require("./libmb/skills"),
+ListReport = require("./app/models/ListReport"),
+TrooperReport = require("./app/models/TrooperReport"),
+List = require("./app/models/List"),
+MinibottersService = require("./app/models/MinibottersService"),
 db = require('./app/db/connect'),
 bodyParser = require('body-parser');
 
 var MongoStore = require('connect-mongo')(express);
-
-
-
-
-
-// var mailOptions = {
-//     from: 'Fred Foo ✔ <foo@blurdybloop.com>', // sender address
-//     to: 'asnaebaem@gmail.com', // list of receivers
-//     subject: 'Hello ✔', // Subject line
-//     text: 'Hello world ✔', // plaintext body
-//     html: '<b>Hello world ✔</b>' // html body
-// };
-
-// var promise =  MailManager.send(mailOptions);
-// promise.then(function(){
-//     console.log("sent!");
-// }, function(resposne){
-//     console.log("ERR", resposne);
-// });
-
-// var adam = new User({name: "adam3", pass: "wsff"});
-// var promise = adam.save();
-// promise.then(function(result){
-//   console.log("success", result);
-// }, function(){
-//   console.log("err");
-// });
-
- 
-// db.User.findOne({name: "yebieoll"}, function(err, model){ 
-//      db.User.update( { _id: model._id}, { $set: { "trooperLists.0" : {troopers: [{name: "xd2", pass:"xd2"}] }} }, function(err, model){
-//       console.log(err, model)
-//      } )
-// });
-
-
-
-// db.User.findOne({name: "yebieoll"}, function(err, model){ 
-//      db.User.update( { _id: model._id}, { $set: { "trooperLists.0" : {troopers: [{name: "xd2", pass:"xd2"}] }} }, function(err, model){
-//       console.log(err, model)
-//      } )
-// });
-
-
-
-
-
-// db.User.findOne({name: "yebieoll"}, function(err, model){ 
-//      db.User.update( { _id: model._id}, { $set: { "trooperLists.0.troopers" : [{name: "xd112", pass:"xd112"}] } }, function(err, model){
-//       console.log(err, model)
-//      } )
-// });
-
-
-
 
 i18n.configure({
     locales: config.i18n.locales,
@@ -90,6 +40,42 @@ i18n.configure({
 });
 
 
+// var listReport = new ListReport();
+// listReport.data.handled = true;
+// listReport.data.date = new Date();
+// listReport.data._creator = null;
+// listReport.save()
+ 
+// var skill = skills.getSkillById(2);
+// console.log(skill)
+
+//var skill = skills.getSkillById(25);
+//console.log(skill);
+
+
+// var list = new List();
+// list.data.name = "exampleName";
+// list.data.troopers = [
+// {name: "ziemniaki3", pass: ""},
+// {name: "ziemniaki4", pass: ""},
+// {name: "ziemniaki5", pass: ""},
+// {name: "ziemniaki6", pass: ""},
+// ];
+// list.save().then(function(result){
+//   console.log(result);
+// }, function(result){
+//   console.log('err',result);
+// });
+
+
+(new List()).getAll({_id: '544cd83c7329842408ba6658'}).then(function(lists){
+  var list = lists[0];
+  //console.log(list);
+  MinibottersService.generateReportByList(list);
+});
+
+return;
+
 //CONFIG ===========================================
 var app = express(); 
   app.use(express.cookieParser()); 
@@ -98,7 +84,7 @@ var app = express();
 
    app.use(express.session({
   store: new MongoStore({
-    url: "mongodb://localhost/forum"
+    url: "mongodb://localhost/mini-botters"
   }),
   secret: '1234567890QWERTY'
 }));
@@ -129,94 +115,40 @@ _.each(routesPOST, function(route){
 app.listen(config.PORT);
 
 
- //SELECT * FROM User WHERE (h = 358626989) FOR UPDATE Deadlock found when trying to get lock; try restarting transaction
-
-
-// app.get('/test', function(req, res){ 
-//   res.cookie(config.i18n.cookieName, 'pl_PL');
-// console.log(res.__('hello')); 
- 
-
-// var trooperConfig = {
-//   domain: "com",
-//   opponent: "nopls",
-//   name: "ziemniaki3"
-// };
-
-// var trooper = new Trooper(trooperConfig);
-  
-// 	trooper.auth().then(function(result){
-// 		console.log("[AUTH]", result.code, result.message);
-
-// 		trooper.getArmyList().then(function(armyList){		 
-// 			res.send(armyList);
-// 		});
-// 	});  
-// });
-
-
-
-
 //===========================================
 
 
 
-var getReportByTrooperConfig = function(trooperConfig){
-  var deferred = q.defer();
-  var resultReport = {
-    time: {
-      start: +new Date(),
-      end: null
-    },
-    fights: {
-      battle: [],
-      mission: [],
-      raid: []
-    },
-    skills: [],
-    money: [],
-    needToUpgrade: [],
-    upgrade: {
-      isAvailable: false,
-      skills: []
-    }
-  };
 
-var trooper = new Trooper(trooperConfig);
-trooper.auth().then(function(authResponse){
-  if(authResponse.code !== 201){
-    deferred.reject();
-  }
-   var fightPromises = [trooper.makeBattles(), trooper.makeMissions(), trooper.makeRaids()];
-   var fightPromise = q.all(fightPromises);
-   fightPromise.then(function(fightResponse){ 
-                  resultReport.fights.battle = fightResponse[0];
-                  resultReport.fights.mission = fightResponse[1];
-                  resultReport.fights.raid = fightResponse[2];
-                  trooper.getTrooperSkillList(0).then(function(trooperInfo){          
-                    resultReport.skills = trooperInfo.skills;
-                    resultReport.money = trooperInfo.money;
-                    resultReport.needToUpgrade = trooperInfo.needToUpgrade;
-                    var upgradePromise = trooper.upgrade(0);
-                    upgradePromise.then(function(result){                    
-                       if(result === 501){                        
-                          resultReport.upgrade.isAvailable = true;
-                           var promise = trooper.getTrooperUpgradeSkillList(0);
-                           promise.then(function(upgradeSkillList){                      
-                           resultReport.upgrade.skills = upgradeSkillList;
-                           resultReport.time.end = +new Date(); 
-                           deferred.resolve(resultReport);
-                          });
-                       }else{
-                          resultReport.time.end = +new Date();
-                          deferred.resolve(resultReport);                 
-                       }
-                    });
-                  });
-                });
- });
-return deferred.promise;
-};
+
+// (new ListReport()).getAll().then(function(listReports){
+//   console.log(listReports)
+// })
+// return;
+var tcfg= { domain: "com", opponent: "nopls", name: "army3",
+                //  pass: "xd"
+}
+
+MinibottersService.generateTrooperReportByTrooperConfig(tcfg)
+.then(function(trooperReport){
+    var trooperReports = [trooperReport.data];
+    var trooperReportsPromise= MinibottersService.generateListReportByTrooperReports(trooperReports);
+    trooperReportsPromise.then(function(listReport){
+      console.log(listReport);
+      listReport.data._creator = null;
+      listReport.save().then(function(){
+        console.log("saved!");
+      }, function(){
+        console.log("not saved :[");
+      });
+    });
+});
+
+
+
+
+ return;
+
 
 
 var handleDaily = function(){
@@ -224,10 +156,11 @@ var handleDaily = function(){
       var listData = {          
         _creator: users[0]._id
       };
+      console.log(users[0])
     db.TrooperList.find(listData, function(err, lists){
       if(!err && lists){
         var list = _.find(lists, function(list){
-          return (list.name === "newTable");
+          return (list.name === "example");
         });
      
 
@@ -237,33 +170,34 @@ var handleDaily = function(){
                   opponent: "nopls",
                   name: trooperInfo.name
                 };
-                return getReportByTrooperConfig(trooperConfig);
+                //return getReportByTrooperConfig(trooperConfig);
              });
-       q.all(promises).then(function(results){         
-            var trooperReportsArray = _.map(results, function(result){
-                return {report: JSON.stringify(result)}; 
-            });
-              console.log(trooperReportsArray);
-             var user = new db.TrooperListReport({_creator: list._id, trooperReports: trooperReportsArray});
-                user.save(function(err, model){
-                  console.log(err, model)
-                });
 
-        },function(){
-        });
+       // q.all(promises).then(function(results){         
+       //      var trooperReportsArray = _.map(results, function(result){
+       //          return {report: JSON.stringify(result)}; 
+       //      });
+       //        console.log(trooperReportsArray);
+       //       var user = new db.TrooperListReport({_creator: list._id, trooperReports: trooperReportsArray});
+       //          user.save(function(err, model){
+       //            console.log(err, model)
+       //          });
+
+       //  },function(){
+       //  });
       }else{
       }      
     });
 
 });
 };
-  
+  //handleDaily();
 //handleDaily();
-  db.TrooperListReport.find().exec(function(err, resp){
-    var report = resp[0].trooperReports[0];
-    var obj = JSON.parse(report.report);
-    console.log(obj)
-  })
+  // db.TrooperListReport.find().exec(function(err, resp){
+  //   var report = resp[0].trooperReports[0];
+  //   var obj = JSON.parse(report.report);
+  //   console.log(obj)
+  // })
 
 
 //handleDaily();
@@ -381,3 +315,69 @@ var handleDaily = function(){
 
 //===============================================================
 //});
+
+// var configs = [
+// {
+//   domain: "com",
+//   opponent: "nopls",
+//   desc: "not loadable page of existing trooper",
+//   name: "aaa..",
+//   pass: "xd"
+// },
+// {
+//   domain: "com",
+//   opponent: "nopls",
+//   desc: "not loadable page of existing trooper w/o pass",
+//   name: "aaa..",
+//  // pass: "xd"
+// },
+// {
+//   domain: "com",
+//   opponent: "nopls",
+//   desc: "not loadable page of NOT EXISTING trooper",
+//   name: "aaaaa..",
+//   pass: "xd"
+// },
+// {
+//   domain: "com",
+//   desc: "not loadable page of NOT EXISTING trooper w/o pass",
+//   opponent: "nopls",
+//   name: "aaaaa..",
+//  // pass: "xd"
+// },
+// {
+//   domain: "com",
+//   desc: "protected trooper with not set password",
+//   opponent: "nopls",
+//   name: "ziemniaki",
+//  // pass: "xd"
+// },
+// {
+//   domain: "com",
+//   desc: "protected trooper with set WRONG password",
+//   opponent: "nopls",
+//   name: "ziemniaki",
+//   pass: "nowehaslo2"
+// },
+// {
+//   domain: "com",
+//   desc: "protected trooper with set VALID password",
+//   opponent: "nopls",
+//   name: "ziemniaki",
+//   pass: "nowehaslo"
+// },
+// {
+//   domain: "com",
+//   desc: "NOT PROTECTED trooper with password",
+//   opponent: "nopls",
+//   name: "ziemniaki3",
+//   pass: "aaaaa"
+// },
+// {
+//   domain: "com",
+//   desc: "NOT PROTECTED trooper w/o password",
+//   opponent: "nopls",
+//   name: "ziemniaki3",
+//   //pass: "aaaa"
+// },
+// ];

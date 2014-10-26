@@ -143,10 +143,10 @@ routes.push({
                .sort('initDate')
         .exec(function(err, listReport){ 
        
-        var report = listReport.trooperReports;     
+        var report = listReport && listReport.trooperReports;     
           var list = req.session.lists[listData.name];
            list.troopers= _.map(req.session.lists[listData.name].troopers, function(t, i){         
-             t.report = report[i].report; 
+             t.report = report && report[i].report; 
              return t;
            }) ;         
           res.send(successResponse(list));
