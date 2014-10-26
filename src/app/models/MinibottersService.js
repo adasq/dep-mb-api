@@ -11,8 +11,9 @@ var MinibottersService = {
 generateTrooperReportByTrooperConfig: function(trooperConfig){
  
   var deferred = q.defer();
+
   var resultReport = new TrooperReport();
-  var trooper = new Trooper(_.clone(trooperConfig));
+  var trooper = new Trooper(trooperConfig);
 trooper.auth2().then(function(authResponse){
    resultReport.data.authState = authResponse;
 
@@ -56,6 +57,8 @@ trooper.auth2().then(function(authResponse){
                        }
                     });
                   });
+                }, function(){
+                  console.log("xd")
                 });
  }, function(authError){
   resultReport.data.authState = authError;
@@ -93,34 +96,55 @@ listConfig = {
       upgrade: list.data.config.upgrade,
       domain: list.data.config.domain
   };
-var troopersReportGenerationPromises = _.map(list.data.troopers, function(trooper){  
+var troopersReportGenerationPromises = [];
+
+troopersReportGenerationPromises= _.map(list.data.troopers, function(trooper){  
   var trooperConfig= _.extend({
     name: trooper.name,
     pass: trooper.pass
-  }, listConfig);
-  return (function(config){
-    return (function(){
-      return that.generateTrooperReportByTrooperConfig(config);
-    })
-  })(trooperConfig);
+  }, listConfig);  
+  return (function(tc){
+      return function(report){
+        console.log(report && report.data)
+        return that.generateTrooperReportByTrooperConfig(_.clone(tc));
+      };
+  })(trooperConfig);  
 }); 
 
-// troopersReportGenerationPromises[0]().then(function(x){
-//   console.log(x.data)
-//     troopersReportGenerationPromises[1]().then(function(xx){
-//     console.log(xx.data)
-//   })
-// })
+  // troopersReportGenerationPromises[0]().then(function(report){
+  //     console.log(report.data);
+  //     troopersReportGenerationPromises[1]().then(function(report2){
+  //         console.log(report2.data);
+  //          troopersReportGenerationPromises[2]().then(function(report3){
+  //             console.log(report3.data);
+  //         });
+  //     });
+  // });
 
-//  return;
-   var reportsPromise = q.all( troopersReportGenerationPromises );
-   reportsPromise.then(function(reports){
-  //  console.log(reports);
-      _.each(reports, function(report){
-        console.log(report.data); 
-        console.log('============================');
-      });
-   });
+
+var result = q(null);
+troopersReportGenerationPromises.forEach(function (f) {
+    result = result.then(f);
+});
+
+result.then(function(lastReport){
+  console.log(lastReport.data)
+})
+
+
+
+
+  //  var reportsPromise = q.all( troopersReportGenerationPromises );
+  //  reportsPromise.then(function(reports){
+  // //  console.log(reports);
+
+  //     _.each(reports, function(report){
+  //       console.log(report.data); 
+  //       console.log('============================');
+  //     });
+  //  }, function(){
+  //   console.log("x5d")
+  //  });
 
       // var trooperReports = [trooperReport.data];
       // that.saveReport(trooperReports, list).then(function(report){

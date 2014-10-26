@@ -30,6 +30,33 @@ MinibottersService = require("./app/models/MinibottersService"),
 db = require('./app/db/connect'),
 bodyParser = require('body-parser');
 
+
+
+// var p1 = function(a){
+// var deferred= q.defer();
+// setTimeout(function(){
+// deferred.resolve(a)
+// }, 100);
+// return deferred.promise;
+// }
+
+// var promises = [];
+// promises= _.map(_.range(1,5), function(i){
+//   return p1(i);
+// })  
+ 
+
+// q.all(promises).then(function(results){
+
+//   _.each(results, function(result){
+//       console.log(result)
+//   });
+// });
+
+
+
+// return;
+
 var MongoStore = require('connect-mongo')(express);
 
 i18n.configure({
